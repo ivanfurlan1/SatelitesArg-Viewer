@@ -231,6 +231,17 @@
 			display: none;
 		}
 		
+		/* ==================================================================
+		   INICIO DE LA MODIFICACIÓN: ZOOM FLUIDO Y SIN PARPADEOS
+		   ================================================================== */
+		.leaflet-zoom-anim .leaflet-zoom-animated {
+			/* Hacemos la animación de zoom casi instantánea (75ms) */
+			transition: transform 0.075s cubic-bezier(0,0,0.25,1);
+		}
+		/* ==================================================================
+		   FIN DE LA MODIFICACIÓN
+		   ================================================================== */
+
 		.satellite-dot-icon {
 			width: 12px;
 			height: 12px;
@@ -267,6 +278,31 @@
 			white-space: nowrap;
 			box-shadow: 0 0 10px rgba(0,0,0,0.5);
 		}
+
+		/* INICIO MODIFICACIÓN: Estilo para que el nombre del satélite sea clickeable */
+		#satellite-name-display {
+			cursor: pointer;
+			transition: color 0.2s ease-in-out;
+		}
+		#satellite-name-display:hover {
+			color: var(--color-secondary);
+		}
+		/* FIN MODIFICACIÓN */
+
+		/* INICIO CORRECCIÓN: Animación suave para el botón de información */
+		#satellite-info-btn {
+			opacity: 0;
+			transform: scale(0.8);
+			transform-origin: left center; /* Para que la escala se origine desde el lado del texto */
+			transition: opacity 0.3s ease-in-out 0.1s, transform 0.3s ease-in-out 0.1s;
+			pointer-events: none; /* Previene clicks cuando está oculto */
+		}
+		#main-control-panel.expanded #satellite-info-btn {
+			opacity: 1;
+			transform: scale(1);
+			pointer-events: auto;
+		}
+		/* FIN CORRECCIÓN */
 
 		.orbit-path {
 			stroke: var(--color-orbit);
@@ -393,32 +429,30 @@
             pointer-events: auto;
         }
 		
-        /* ===== INICIO DE LA MODIFICACIÓN: Mejora del Slider de Tiempo ===== */
         #timeline-slider {
             -webkit-appearance: none; appearance: none;
             width: 100%; 
-            height: 12px; /* Aumentado de 8px a 12px para mejor agarre */
+            height: 12px;
             background: #30363d;
             outline: none; 
-            border-radius: 6px; /* Ajustado al nuevo alto */
+            border-radius: 6px;
         }
         #timeline-slider::-webkit-slider-thumb {
             -webkit-appearance: none; appearance: none;
-            width: 24px; /* Aumentado de 18px a 24px */
-            height: 24px; /* Aumentado de 18px a 24px */
+            width: 24px;
+            height: 24px;
             background: var(--color-secondary);
             cursor: pointer; border-radius: 50%; 
-            border: 3px solid var(--color-background); /* Borde un poco más grueso */
+            border: 3px solid var(--color-background);
         }
         #timeline-slider::-moz-range-thumb {
-            width: 24px; /* Aumentado de 18px a 24px */
-            height: 24px; /* Aumentado de 18px a 24px */
+            width: 24px;
+            height: 24px;
             background: var(--color-secondary);
             cursor: pointer; 
             border-radius: 50%; 
-            border: 3px solid var(--color-background); /* Borde un poco más grueso */
+            border: 3px solid var(--color-background);
         }
-        /* ===== FIN DE LA MODIFICACIÓN ===== */
 
         .time-traveling-active {
             color: var(--color-warning) !important;
@@ -569,16 +603,22 @@
 		</div>
 		
 		<header id="main-control-panel">
-            <div id="collapsed-header">
+            <div id="collapsed-header" class="relative">
                 <div class="flex items-center gap-4">
                     <button id="back-to-start-from-map-btn" class="btn btn-secondary !p-2 h-9 w-9 flex-shrink-0 flex items-center justify-center" aria-label="Volver al inicio" title="Volver al inicio">
 						<i class="fa-solid fa-house"></i>
 					</button>
                     <h2 class="font-bold text-lg hidden sm:block">SatélitesArg</h2>
                 </div>
-                <div class="flex items-center gap-4 font-mono">
-                    <span id="sat-count-display" class="status-badge"><i class="fa-solid fa-satellite mr-2"></i>0</span>
-                </div>
+                <!-- INICIO CORRECCIÓN: Estructura modificada para centrar el texto del satélite independientemente del botón de información -->
+                <div id="satellite-info-header" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center font-mono text-sm hidden">
+					<span id="satellite-name-display" class="font-bold text-white truncate max-w-[200px]" title="Centrar en el satélite"></span>
+					<!-- El botón ahora está posicionado de forma absoluta para no afectar el centrado del texto -->
+					<button id="satellite-info-btn" class="absolute left-full ml-2 text-secondary hover:text-primary transition-colors" title="Ver información del satélite">
+						<i class="fa-solid fa-circle-info text-lg"></i>
+					</button>
+				</div>
+                <!-- FIN CORRECCIÓN -->
                 <button id="toggle-menu-btn" class="btn btn-secondary !p-2 h-9 w-9 flex-shrink-0 flex items-center justify-center" aria-label="Expandir o colapsar menú" title="Expandir/Colapsar Menú">
 					<i class="fa-solid fa-chevron-down"></i>
 				</button>
@@ -616,11 +656,9 @@
                      </button>
                 </div>
         
-                <!-- ===== INICIO DE LA MODIFICACIÓN: Contenedor con padding para mejorar el área de toque del slider ===== -->
                 <div class="w-full py-2">
                     <input type="range" min="0" max="1439" value="0" class="w-full" id="timeline-slider" title="Arrastra para cambiar la hora del día">
                 </div>
-                <!-- ===== FIN DE LA MODIFICACIÓN ===== -->
         
                 <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
                     <div class="flex items-center gap-2 justify-center md:justify-start">
@@ -654,21 +692,19 @@
 			</button>
 		</div>
 
-		<div id="screenshot-controls" class="absolute z-[500] bottom-6 right-4">
-			<button id="capture-map-btn" class="btn btn-secondary !p-0 h-11 w-11 flex items-center justify-center" title="Capturar mapa (3:4)">
-				<i class="fa-solid fa-camera text-lg"></i>
+		<div id="action-controls" class="absolute z-[500] bottom-6 right-4 flex gap-2">
+			<button id="toggle-visibility-bands-btn" class="btn btn-secondary !p-0 h-11 w-11 flex items-center justify-center hidden" title="Mostrar/Ocultar bandas de visibilidad">
+				<i class="fa-solid fa-eye text-lg"></i>
 			</button>
 		</div>
 
+		<!-- Contenedor solo para la leyenda -->
 		<div id="visibility-controls" class="absolute z-[450] bottom-[5.5rem] right-4 flex-col items-end gap-2 hidden">
-			<div id="visibility-legend" class="text-xs text-right bg-surface/80 p-2 rounded-md border border-gray-700 backdrop-blur-sm shadow-lg">
-				<div><i class="fa-solid fa-circle" style="color:rgba(57, 211, 83, 0.7)"></i> Óptima (&lt; 50km)</div>
-				<div><i class="fa-solid fa-circle" style="color:rgba(247, 181, 48, 0.7)"></i> Buena (&lt; 150km)</div>
-				<div><i class="fa-solid fa-circle" style="color:rgba(248, 81, 73, 0.7)"></i> Periférica (&lt; 300km)</div>
+			<div id="visibility-legend" class="text-xs text-right bg-surface/80 p-2 rounded-md border border-gray-700 backdrop-blur-sm shadow-lg hidden">
+				<div><i class="fa-solid fa-circle" style="color:rgba(57, 211, 83, 0.25)"></i> Óptima (> 60°)</div>
+				<div><i class="fa-solid fa-circle" style="color:rgba(247, 181, 48, 0.2)"></i> Media (30°-60°)</div>
+				<div><i class="fa-solid fa-circle" style="color:rgba(248, 81, 73, 0.15)"></i> Periférica (10°-30°)</div>
 			</div>
-			<button id="toggle-visibility-bands-btn" class="btn btn-secondary !p-0 h-11 w-11 flex items-center justify-center" title="Mostrar/Ocultar bandas de visibilidad">
-				<i class="fa-solid fa-draw-polygon text-lg"></i>
-			</button>
 		</div>
 
 	</div>
@@ -726,6 +762,18 @@
 		</div>
 	</div>
 
+	<div id="satellite-info-modal" class="modal-overlay hidden">
+		<div class="modal-content">
+			<h3 id="satellite-info-modal-title">Información del Satélite</h3>
+			<div id="satellite-info-content" class="space-y-4 text-text-secondary">
+				<!-- La información se insertará aquí dinámicamente -->
+			</div>
+			<div class="flex justify-center mt-6">
+				<button id="close-satellite-info-modal-btn" class="btn btn-primary">Cerrar</button>
+			</div>
+		</div>
+	</div>
+
 	<!-- ==========================================================================
 	   LÓGICA DE LA APLICACIÓN (JAVASCRIPT)
 	   ========================================================================== -->
@@ -777,6 +825,7 @@
 					geocodeTimeout: null,
 					currentTime: new Date(),
 					isTimeTraveling: false,
+					isPassViewActive: false,
 					timeStepIndex: 1, // 0: sec, 1: min, 2: hr
 					baseLayers: {},
 					currentBaseLayer: null,
@@ -827,8 +876,8 @@
 						'close-tle-modal-btn', 'save-tle-btn', 'tle-input', 'tle-status',
 						'location-input', 'location-feedback', 'predict-passes-btn',
 						'passes-modal', 'passes-modal-title', 'close-passes-modal-btn',
-						'results-container', 'main-control-panel', 'collapsed-header',
-						'toggle-menu-btn', 'utc-time-display', 'sat-count-display',
+						'results-container', 'main-control-panel', 'collapsed-header', 'expanded-content',
+						'toggle-menu-btn', 'utc-time-display',
 						'time-control-panel', 'toggle-time-control-btn', 'reset-time-btn',
 						'time-rewind-btn', 'time-step-btn', 'time-forward-btn',
 						'timeline-slider', 'date-input', 'time-input', 'current-time-display',
@@ -839,8 +888,11 @@
                         'open-favorites-modal-btn', 'favorites-modal', 'close-favorites-modal-btn',
                         'favorites-modal-list',
 						'map-style-switcher', 'map-style-toggle-btn', 'map-style-options',
-						'screenshot-controls', 'capture-map-btn',
-						'visibility-controls', 'toggle-visibility-bands-btn'
+						'action-controls', 
+						'visibility-controls', 'toggle-visibility-bands-btn', 'visibility-legend',
+						'satellite-info-header', 'satellite-name-display', 'satellite-info-btn',
+						'satellite-info-modal', 'satellite-info-modal-title', 'satellite-info-content',
+						'close-satellite-info-modal-btn'
 					];
 					ids.forEach(id => {
 						const camelCaseId = id.replace(/-(\w)/g, (_, c) => c.toUpperCase());
@@ -850,12 +902,23 @@
 
 				initMap() {
 					if (this.state.mapInitialized) return;
+					// ==================================================================
+					// INICIO DE LA MODIFICACIÓN: ZOOM FLUIDO Y SIN PARPADEOS
+					// ==================================================================
+					// La animación se activa para prevenir parpadeos, pero el CSS la
+					// hace casi instantánea para que el control sea súper responsivo.
 					this.state.map = L.map('map', { 
 						zoomControl: false, 
 						attributionControl: false,
-						maxBounds: [[-90, -180], [90, 180]],
+						maxBounds: [[-90, -540], [90, 540]],
                         minZoom: 2,
+						zoomSnap: 0.1,
+						zoomDelta: 0.25,
+						zoomAnimation: true // <-- Se mantiene en `true` para que el CSS funcione
 					}).setView([20, 0], 2);
+					// ==================================================================
+					// FIN DE LA MODIFICACIÓN
+					// ==================================================================
 
 					this.mapLayers.defineLayers();
 					this.mapLayers.switchLayer('dark');
@@ -912,6 +975,15 @@
 						clearTimeout(this.state.geocodeTimeout);
 						this.state.geocodeTimeout = setTimeout(() => this.location.handleCitySearch(), 500);
 					});
+
+					elements.locationInput.addEventListener('keydown', (event) => {
+						if (event.key === 'Enter') {
+							event.preventDefault();
+							clearTimeout(this.state.geocodeTimeout);
+							this.location.handleCitySearch();
+							elements.locationInput.blur();
+						}
+					});
                     
                     elements.openFavoritesModalBtn.addEventListener('click', () => {
                         this.playSound('uiClick', 'D4');
@@ -926,34 +998,88 @@
 					elements.predictPassesBtn.addEventListener('click', () => this.prediction.handlePrediction());
 					elements.closePassesModalBtn.addEventListener('click', () => { this.playSound('uiClick', 'A3'); this.ui.hideModal(elements.passesModal); });
 
+					elements.satelliteNameDisplay.addEventListener('click', () => {
+						if (this.state.trackedSatellites.length > 0 && this.state.map) {
+							const sat = this.state.trackedSatellites[0];
+							if (sat.marker) {
+								this.playSound('uiClick', 'F4');
+								this.state.map.panTo(sat.marker.getLatLng());
+							}
+						}
+					});
+
+					elements.satelliteInfoBtn.addEventListener('click', () => this.satellites.showInfoModal());
+					elements.closeSatelliteInfoModalBtn.addEventListener('click', () => { this.playSound('uiClick', 'A3'); this.ui.hideModal(elements.satelliteInfoModal); });
+
 					elements.toggleMenuBtn.addEventListener('click', (e) => { 
 						e.stopPropagation();
 						elements.mainControlPanel.classList.toggle('expanded');
 					});
-
-					let isDragging = false, startY = 0, initialMaxHeight = 0;
-					const panel = elements.mainControlPanel, collapsedHeight = 58, expandedHeight = 500;
+					
+					let isDragging = false, startY = 0, initialMaxHeight = 0, expandedHeight = 0;
+					const panel = elements.mainControlPanel;
+					const expandedContent = elements.expandedContent;
+					const collapsedHeight = 58;
+					
 					const startDrag = (e) => {
 						if (e.target.closest('button, input')) return;
-						isDragging = true; startY = e.pageY || e.touches[0].pageY; initialMaxHeight = panel.offsetHeight;
-						panel.style.transition = 'none'; document.body.style.cursor = 'ns-resize';
+						expandedHeight = expandedContent.scrollHeight + collapsedHeight; 
+						isDragging = true;
+						startY = e.pageY || e.touches[0].pageY;
+						initialMaxHeight = panel.offsetHeight;
+						panel.style.transition = 'none';
+						expandedContent.style.transition = 'none';
+						document.body.style.cursor = 'ns-resize';
 					};
+
 					const onDrag = (e) => {
-						if (!isDragging) return; e.preventDefault();
-						const currentY = e.pageY || e.touches[0].pageY, deltaY = currentY - startY;
+						if (!isDragging) return;
+						e.preventDefault();
+						const currentY = e.pageY || e.touches[0].pageY;
+						const deltaY = currentY - startY;
 						let newMaxHeight = Math.max(collapsedHeight, Math.min(initialMaxHeight + deltaY, expandedHeight));
 						panel.style.maxHeight = `${newMaxHeight}px`;
+
+						const expansionProgress = (newMaxHeight - collapsedHeight) / (expandedHeight * 0.75 - collapsedHeight);
+						expandedContent.style.opacity = Math.max(0, Math.min(1, expansionProgress));
 					};
-					const endDrag = (e) => {
-						if (!isDragging) return; isDragging = false; document.body.style.cursor = 'default'; panel.style.transition = '';
-						panel.classList.toggle('expanded', panel.offsetHeight > collapsedHeight * 2);
+
+					const endDrag = () => {
+						if (!isDragging) return;
+						isDragging = false;
+						document.body.style.cursor = 'default';
+						panel.style.transition = '';
+						expandedContent.style.transition = '';
+						expandedContent.style.opacity = '';
+
+						const shouldBeExpanded = panel.offsetHeight > collapsedHeight * 1.5;
+						panel.classList.toggle('expanded', shouldBeExpanded);
 						panel.style.maxHeight = '';
 					};
 
-					panel.addEventListener('mousedown', startDrag); document.addEventListener('mousemove', onDrag); document.addEventListener('mouseup', endDrag);
-					panel.addEventListener('touchstart', startDrag, { passive: true }); document.addEventListener('touchmove', onDrag); document.addEventListener('touchend', endDrag);
+					panel.addEventListener('mousedown', startDrag);
+					document.addEventListener('mousemove', onDrag);
+					document.addEventListener('mouseup', endDrag);
+					panel.addEventListener('touchstart', startDrag, { passive: false });
+					document.addEventListener('touchmove', onDrag, { passive: false });
+					document.addEventListener('touchend', endDrag);
 					
-					elements.toggleTimeControlBtn.addEventListener('click', () => { this.playSound('uiClick', 'C4'); elements.timeControlPanel.classList.toggle('visible'); });
+					elements.toggleTimeControlBtn.addEventListener('click', () => {
+						this.playSound('uiClick', 'C4'); 
+						elements.timeControlPanel.classList.toggle('visible');
+						
+						if (this.state.map) {
+							if (elements.timeControlPanel.classList.contains('visible')) {
+								// INICIO CORRECCIÓN: Movimiento invertido
+								// El menú se abre -> el mapa se mueve hacia ABAJO para hacer espacio.
+								this.state.map.panBy([0, 100], { animate: true });
+							} else {
+								// El menú se cierra -> el mapa vuelve a su lugar (hacia ARRIBA).
+								this.state.map.panBy([0, -100], { animate: true });
+							}
+						}
+					});
+
 					elements.resetTimeBtn.addEventListener('click', () => { this.playSound('uiClick', 'G4'); this.time.stopTimeTravel(); this.time.startRealTimeUpdates(); });
 					elements.timeStepBtn.addEventListener('click', () => {
 						this.playSound('uiClick', 'E4');
@@ -965,8 +1091,6 @@
 					elements.dateInput.addEventListener('change', () => this.time.setTimeFromInputs());
 					elements.timeInput.addEventListener('change', () => this.time.setTimeFromInputs());
 					elements.timelineSlider.addEventListener('input', () => this.time.setTimeFromSlider());
-
-					elements.captureMapBtn.addEventListener('click', () => this.screenshot.capture());
 					
 					elements.toggleVisibilityBandsBtn.addEventListener('click', () => this.prediction.toggleVisibilityBands());
 				},
@@ -1041,15 +1165,15 @@
 						App.state.baseLayers = {
 							dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 								attribution: '&copy; CARTO',
-								subdomains: 'abcd', maxZoom: 20, noWrap: true
+								subdomains: 'abcd', maxZoom: 20
 							}),
 							light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 								attribution: '&copy; CARTO',
-								subdomains: 'abcd', maxZoom: 20, noWrap: true
+								subdomains: 'abcd', maxZoom: 20
 							}),
 							satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
 								attribution: 'Tiles &copy; Esri',
-								maxZoom: 19, noWrap: true
+								maxZoom: 19
 							}),
 						};
 					},
@@ -1075,72 +1199,6 @@
 						App.elements.mapStyleOptions.querySelectorAll('.map-style-btn').forEach(btn => {
 							btn.classList.toggle('active', btn.dataset.layer === layerId);
 						});
-					}
-				},
-				
-				screenshot: {
-					async capture() {
-						App.playSound('uiClick', 'F4');
-						const elementsToHide = [
-							App.elements.mainControlPanel,
-							App.elements.toggleTimeControlBtn,
-							App.elements.timeControlPanel,
-							App.elements.mapStyleSwitcher,
-							App.elements.screenshotControls,
-							App.elements.visibilityControls,
-						];
-
-						elementsToHide.forEach(el => el.classList.add('hide-for-screenshot'));
-
-						try {
-							await new Promise(resolve => setTimeout(resolve, 50));
-
-							const mapContainer = document.getElementById('map-container');
-							const sourceCanvas = await html2canvas(mapContainer, {
-								useCORS: true,
-								logging: false,
-							});
-							
-							const targetAspectRatio = 3 / 4;
-							const sourceWidth = sourceCanvas.width;
-							const sourceHeight = sourceCanvas.height;
-							
-							let cropWidth, cropHeight, sourceX, sourceY;
-
-							if (sourceWidth / sourceHeight > targetAspectRatio) {
-								cropHeight = sourceHeight;
-								cropWidth = sourceHeight * targetAspectRatio;
-								sourceX = (sourceWidth - cropWidth) / 2;
-								sourceY = 0;
-							} else {
-								cropWidth = sourceWidth;
-								cropHeight = sourceWidth / targetAspectRatio;
-								sourceX = 0;
-								sourceY = (sourceHeight - cropHeight) / 2;
-							}
-
-							const croppedCanvas = document.createElement('canvas');
-							croppedCanvas.width = cropWidth;
-							croppedCanvas.height = cropHeight;
-							const ctx = croppedCanvas.getContext('2d');
-
-							ctx.drawImage(sourceCanvas, sourceX, sourceY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-
-							const link = document.createElement('a');
-							link.download = `SatellitesArg_Captura_${new Date().toISOString().slice(0,10)}.png`;
-							link.href = croppedCanvas.toDataURL('image/png');
-							document.body.appendChild(link);
-							link.click();
-							document.body.removeChild(link);
-							
-							App.playSound('success', 'C5');
-
-						} catch (error) {
-							console.error('Error al capturar el mapa:', error);
-							App.playSound('error', 'C3');
-						} finally {
-							elementsToHide.forEach(el => el.classList.remove('hide-for-screenshot'));
-						}
 					}
 				},
                 
@@ -1237,7 +1295,10 @@
                     handleTrack(tleString) {
                         App.playSound('success', 'G4'); App.elements.tleInput.value = tleString;
 						App.satellites.handleTleLoad(true); App.ui.showScreen('app-container');
-						if (App.state.trackedSatellites.length > 0) App.satellites.handleTracking();
+						if (App.state.trackedSatellites.length > 0) {
+							App.satellites.handleTracking();
+							App.satellites.centerOnSatellite();
+						}
                     },
                     loadFromStorage() { try { const data = localStorage.getItem(App.config.localStorageKey); return data ? JSON.parse(data) : []; } catch (e) { return []; } },
                     saveToStorage(satellites) { try { localStorage.setItem(App.config.localStorageKey, JSON.stringify(satellites)); } catch (e) { console.error(e); } }
@@ -1278,11 +1339,14 @@
 						if (!satData || !satData.tle) { App.playSound('error', 'D3'); return; }
 						App.playSound('success', 'G4'); App.elements.tleInput.value = satData.tle;
 						this.handleTleLoad(true); App.ui.showScreen('app-container');
-						if (App.state.trackedSatellites.length > 0) this.handleTracking();
+						if (App.state.trackedSatellites.length > 0) {
+							this.handleTracking();
+							this.centerOnSatellite();
+						}
 					},
 
 					handleTleLoad(isSilent = false) {
-						const { tleInput, tleStatus, satCountDisplay } = App.elements;
+						const { tleInput, tleStatus, satelliteInfoHeader, satelliteNameDisplay } = App.elements;
 						const tleData = tleInput.value;
 						if (!tleData.trim()) { if (!isSilent) App.playSound('error', 'C3'); return; }
 
@@ -1304,8 +1368,11 @@
 
 						if (App.state.trackedSatellites.length > 0) {
 							const count = App.state.trackedSatellites.length;
-							satCountDisplay.innerHTML = `<i class="fa-solid fa-satellite mr-2"></i>${count}`;
 							const satName = App.state.trackedSatellites[0].name || 'Satélite';
+
+							satelliteNameDisplay.textContent = satName;
+							satelliteInfoHeader.classList.remove('hidden');
+							
 							tleStatus.textContent = `${count > 1 ? `${count} satélites` : satName} cargado.`;
 							tleStatus.className = 'text-xs text-center text-green-400';
 							if (!isSilent) App.playSound('success', 'G4');
@@ -1377,8 +1444,31 @@
 								currentSegment.push(path[i]);
 							}
 							multiPath.push(currentSegment);
-							multiPath.forEach(segment => { if (segment.length > 1) sat.orbitLayers.push(L.polyline(segment, { className: 'orbit-path' }).addTo(map)); });
+							
+							multiPath.forEach(segment => { 
+								if (segment.length > 1) {
+									sat.orbitLayers.push(L.polyline(segment, { className: 'orbit-path' }).addTo(map));
+									sat.orbitLayers.push(L.polyline(segment.map(p => [p[0], p[1] + 360]), { className: 'orbit-path' }).addTo(map));
+									sat.orbitLayers.push(L.polyline(segment.map(p => [p[0], p[1] - 360]), { className: 'orbit-path' }).addTo(map));
+								}
+							});
 						});
+					},
+					
+					centerOnSatellite() {
+						if (App.state.trackedSatellites.length > 0 && App.state.map) {
+							const sat = App.state.trackedSatellites[0];
+							try {
+								const posVel = satellite.propagate(sat.satrec, App.state.currentTime);
+								const gmst = satellite.gstime(App.state.currentTime);
+								const posGd = satellite.eciToGeodetic(posVel.position, gmst);
+								const lat = satellite.radiansToDegrees(posGd.latitude);
+								const lon = satellite.radiansToDegrees(posGd.longitude);
+								App.state.map.flyTo([lat, lon]); 
+							} catch(e) {
+								console.error("No se pudo calcular la posición para centrar el satélite:", e);
+							}
+						}
 					},
 					
 					clearMapLayers() {
@@ -1393,10 +1483,55 @@
 					clearAll() {
 						this.clearMapLayers(); App.time.stopTimeTravel(); App.state.trackedSatellites = [];
 						App.prediction.clearVisibilityBands();
-						App.elements.satCountDisplay.innerHTML = `<i class="fa-solid fa-satellite mr-2"></i>0`;
 						App.elements.tleStatus.textContent = 'No hay datos cargados.'; App.elements.tleStatus.className = 'text-xs text-center text-gray-400';
+						App.elements.satelliteInfoHeader.classList.add('hidden');
+						App.elements.satelliteNameDisplay.textContent = '';
 						App.ui.updateButtonsState();
 					},
+
+					showInfoModal() {
+						if (App.state.trackedSatellites.length === 0) return;
+						const sat = App.state.trackedSatellites[0];
+						const { satelliteInfoModalTitle, satelliteInfoContent } = App.elements;
+
+						App.playSound('uiClick', 'E4');
+
+						try {
+							const posVel = satellite.propagate(sat.satrec, App.state.currentTime);
+							const gmst = satellite.gstime(App.state.currentTime);
+							const posGd = satellite.eciToGeodetic(posVel.position, gmst);
+							
+							const vel = posVel.velocity;
+							const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
+
+							satelliteInfoModalTitle.textContent = `Info: ${sat.name}`;
+							satelliteInfoContent.innerHTML = `
+								<div class="grid grid-cols-2 gap-4">
+									<div>
+										<p class="font-bold text-text-primary">Altura:</p>
+										<p class="font-mono text-lg text-secondary">${posGd.height.toFixed(2)} km</p>
+									</div>
+									<div>
+										<p class="font-bold text-text-primary">Velocidad:</p>
+										<p class="font-mono text-lg text-secondary">${speed.toFixed(2)} km/s</p>
+									</div>
+									<div>
+										<p class="font-bold text-text-primary">Latitud:</p>
+										<p class="font-mono text-lg text-secondary">${satellite.radiansToDegrees(posGd.latitude).toFixed(4)}°</p>
+									</div>
+									<div>
+										<p class="font-bold text-text-primary">Longitud:</p>
+										<p class="font-mono text-lg text-secondary">${satellite.radiansToDegrees(posGd.longitude).toFixed(4)}°</p>
+									</div>
+								</div>
+							`;
+						} catch(e) {
+							satelliteInfoContent.innerHTML = `<p class="text-danger">No se pudo calcular la información para este satélite en el momento actual.</p>`;
+							console.error("Error calculating satellite info:", e);
+						}
+
+						App.ui.showModal(App.elements.satelliteInfoModal);
+					}
 				},
 				
 				location: {
@@ -1505,7 +1640,7 @@
 									<thead class="bg-gray-700/50 uppercase text-xs"><tr><th class="p-3 text-center">Fecha</th><th class="p-3">Horario</th><th class="p-3 text-right">Elev. Máx.</th></tr></thead>
 									<tbody>${passes.map(pass => `<tr class="border-b border-gray-700 hover:bg-gray-700/30 cursor-pointer pass-row" data-timestamp="${pass.start.getTime()}">
 												<td class="p-3 align-middle text-center"><span class="inline-block font-bold text-white px-3 py-1.5 rounded-lg border-2" style="border-color: ${this.getElevationColor(pass.maxElevation)};">${this.formatPassDate(pass.start)}</span></td>
-                                                <td class="p-3 align-middle font-mono text-xs md:text-sm"><div>INICIO: ${pass.start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}</div><div>FIN: &nbsp;&nbsp;${pass.end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}</div></td>
+                                                <td class="p-3 align-middle font-mono text-xs md:text-sm"><div>${pass.start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}</div><div>${pass.end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}</div></td>
                                                 <td class="p-3 align-middle text-right font-bold text-lg" style="color: ${this.getElevationColor(pass.maxElevation)};">${pass.maxElevation.toFixed(1)}°</td></tr>`).join('')}</tbody></table></div>`;
 						resultsContainer.innerHTML = tableHtml;
 						resultsContainer.querySelectorAll('.pass-row').forEach(row => row.addEventListener('click', (e) => this.jumpToPassTime(e.currentTarget.dataset.timestamp)));
@@ -1554,11 +1689,14 @@
 						if (currentSegment.length > 1) (masterPath[masterPath.length-1].isVisible ? visibleSegments : shadowSegments).push(currentSegment);
 						visibleSegments.forEach(segment => sat.orbitLayers.push(L.polyline(segment, { className: 'orbit-path' }).addTo(map)));
 						shadowSegments.forEach(segment => sat.orbitLayers.push(L.polyline(segment, { className: 'orbit-path-shadow' }).addTo(map)));
-						return masterPath.map(p => [p.lat, p.lon]);
+						return visibleSegments;
 					},
 					jumpToPassTime(timestamp) {
 						const time = parseInt(timestamp, 10); if (isNaN(time)) return;
-						App.playSound('success', 'A4'); App.time.startTimeTravel(); App.state.currentTime = new Date(time);
+						App.playSound('success', 'A4');
+						App.time.startTimeTravel();
+						App.state.isPassViewActive = true;
+						App.state.currentTime = new Date(time);
 						
 						this.clearVisibilityBands();
 						const satToDraw = App.state.trackedSatellites[0];
@@ -1566,11 +1704,12 @@
 							if (satToDraw.orbitLayers) satToDraw.orbitLayers.forEach(layer => App.state.map.removeLayer(layer));
 							satToDraw.orbitLayers = [];
 							
-							const trajectoryPoints = this.drawPassTrajectory(satToDraw, new Date(time), App.state.observerCoords);
+							const visibleSegments = this.drawPassTrajectory(satToDraw, new Date(time), App.state.observerCoords);
 							
-							if (trajectoryPoints && trajectoryPoints.length > 0) {
-								this.drawVisibilityBands(trajectoryPoints);
+							if (visibleSegments && visibleSegments.length > 0) {
+								this.drawVisibilityBands(visibleSegments, satToDraw); // MODIFICADO: Pasar el satélite
 								App.elements.visibilityControls.classList.remove('hidden');
+								App.elements.toggleVisibilityBandsBtn.classList.remove('hidden');
 							}
 						}
 
@@ -1579,74 +1718,154 @@
 						App.elements.mainControlPanel.classList.remove('expanded'); App.elements.timeControlPanel.classList.remove('visible'); 
 						if (App.state.observerCoords) App.state.map.flyTo(App.state.observerCoords, 5);
 					},
-					drawVisibilityBands(trajectory) {
-						if (trajectory.length < 2) return;
+                    getGroundRadiusForElevation(elevationDegrees, altitudeKm) {
+                        const R = 6371; // Radio de la Tierra en km
+                        const elevRads = satellite.degreesToRadians(elevationDegrees);
+                        const beta = Math.asin((R / (R + altitudeKm)) * Math.cos(elevRads));
+                        const phi = Math.PI / 2 - elevRads - beta;
+                        return R * phi;
+                    },
+
+					drawVisibilityBands(trajectories, sat) {
+						if (!trajectories || trajectories.length === 0 || !sat) return;
 						this.clearVisibilityBands(); 
-						App.state.visibilityBands.trajectory = trajectory;
+						App.state.visibilityBands.trajectory = trajectories;
 
-						const distances = { red: 300, yellow: 150, green: 50 };
+                        let altitude = 400; // Valor por defecto
+                        try {
+                            const midPassTime = new Date(App.state.currentTime.getTime());
+                            const posVel = satellite.propagate(sat.satrec, midPassTime);
+                            const gmst = satellite.gstime(midPassTime);
+                            const posGd = satellite.eciToGeodetic(posVel.position, gmst);
+                            altitude = posGd.height;
+                        } catch (e) {
+                            console.error("No se pudo calcular la altitud del satélite, usando valor por defecto.");
+                        }
+
+                        const distances = {
+                            periferica: this.getGroundRadiusForElevation(10, altitude),
+                            media: this.getGroundRadiusForElevation(30, altitude),
+                            optima: this.getGroundRadiusForElevation(60, altitude),
+                        };
+
 						const colors = { 
-							red: 'rgba(248, 81, 73, 0.3)', 
-							yellow: 'rgba(247, 181, 48, 0.35)', 
-							green: 'rgba(57, 211, 83, 0.4)'
+							periferica: 'rgba(248, 81, 73, 0.15)', 
+							media: 'rgba(247, 181, 48, 0.2)', 
+							optima: 'rgba(57, 211, 83, 0.25)'
 						};
 
-						const boundaries = {
-							red: { left: [], right: [] },
-							yellow: { left: [], right: [] },
-							green: { left: [], right: [] },
-						};
+						trajectories.forEach(trajectory => {
+							if (trajectory.length < 2) return;
 
-						for (let i = 0; i < trajectory.length; i++) {
-							const p1 = trajectory[i];
-							const p2 = i < trajectory.length - 1 ? trajectory[i+1] : trajectory[i];
-							const p_prev = i > 0 ? trajectory[i-1] : trajectory[i];
+							const boundaries = {
+								periferica: { left: [], right: [] },
+								media: { left: [], right: [] },
+								optima: { left: [], right: [] },
+							};
+							
+							for (let i = 0; i < trajectory.length; i++) {
+								const p1 = trajectory[i];
 
-							const bearing_out = calculateBearing(p_prev, p1);
-							const bearing_in = calculateBearing(p1, p2);
-							
-							const bearing = (i > 0 && i < trajectory.length -1) ? (bearing_out + bearing_in) / 2 : bearing_in;
-							
-							for (const color of ['red', 'yellow', 'green']) {
-								const dist = distances[color];
-								boundaries[color].right.push(calculateDestinationPoint(p1[0], p1[1], bearing + 90, dist));
-								boundaries[color].left.push(calculateDestinationPoint(p1[0], p1[1], bearing - 90, dist));
+								let bearing;
+								if (i === 0) {
+									bearing = calculateBearing(p1, trajectory[i + 1]);
+								} else if (i === trajectory.length - 1) {
+									bearing = calculateBearing(trajectory[i - 1], p1);
+								} else {
+									const bearingFromPrev = calculateBearing(trajectory[i - 1], p1);
+									const bearingToNext = calculateBearing(p1, trajectory[i + 1]);
+									let angleDiff = bearingToNext - bearingFromPrev;
+									if (angleDiff > 180) angleDiff -= 360;
+									if (angleDiff < -180) angleDiff += 360;
+									bearing = bearingFromPrev + angleDiff / 2;
+								}
+								
+								for (const band of ['periferica', 'media', 'optima']) {
+									const dist = distances[band];
+									boundaries[band].right.push(calculateDestinationPoint(p1[0], p1[1], bearing + 90, dist));
+									boundaries[band].left.push(calculateDestinationPoint(p1[0], p1[1], bearing - 90, dist));
+								}
 							}
-						}
+                            
+							// ==================================================================
+							// INICIO DE LA MODIFICACIÓN: DIBUJAR BANDAS CON BORDES REDONDEADOS
+							// ==================================================================
+							['periferica', 'media', 'optima'].forEach(band => {
+								const dist = distances[band];
+								const rightPoints = boundaries[band].right;
+								const leftPoints = boundaries[band].left;
 
-						['red', 'yellow', 'green'].forEach(color => {
-							const path = [ ...boundaries[color].right, ...boundaries[color].left.reverse() ];
-							const polygon = L.polygon(path, {
-								fillColor: colors[color],
-								fillOpacity: 1,
-								weight: 0,
+								if (rightPoints.length < 1 || leftPoints.length < 1) return;
+								
+								const path = [];
+								
+								// 1. Añadir los puntos del borde derecho
+								path.push(...rightPoints);
+
+								// 2. Añadir el arco del final de la trayectoria
+								const endPoint = trajectory[trajectory.length - 1];
+								const endBearing = calculateBearing(trajectory[trajectory.length - 2], trajectory[trajectory.length - 1]);
+								// ==================================================================
+								// LÍNEA CORREGIDA
+								// ==================================================================
+								for (let angle = endBearing + 90; angle >= endBearing - 90; angle -= 10) {
+									path.push(calculateDestinationPoint(endPoint[0], endPoint[1], angle, dist));
+								}
+								
+								// 3. Añadir los puntos del borde izquierdo (en orden inverso)
+								path.push(...leftPoints.reverse());
+								
+								// 4. Añadir el arco del inicio de la trayectoria para cerrar el polígono
+								const startPoint = trajectory[0];
+								const startBearing = calculateBearing(trajectory[0], trajectory[1]);
+								for (let angle = startBearing - 90; angle >= startBearing - 270; angle -= 10) {
+									 path.push(calculateDestinationPoint(startPoint[0], startPoint[1], angle, dist));
+								}
+
+								const polygon = L.polygon(path, {
+									fillColor: colors[band],
+									fillOpacity: 1,
+									weight: 0,
+								});
+								App.state.visibilityBands.layers.push(polygon);
 							});
-							App.state.visibilityBands.layers.push(polygon);
+							// ==================================================================
+							// FIN DE LA MODIFICACIÓN
+							// ==================================================================
 						});
 					},
 					toggleVisibilityBands() {
 						App.playSound('uiClick', 'F4');
 						const { visibilityBands, map } = App.state;
 						const button = App.elements.toggleVisibilityBandsBtn;
+						const legend = App.elements.visibilityLegend;
 						visibilityBands.visible = !visibilityBands.visible;
 
 						if (visibilityBands.visible) {
 							visibilityBands.layers.forEach(layer => layer.addTo(map));
 							button.classList.add('active');
+							legend.classList.remove('hidden');
 						} else {
 							visibilityBands.layers.forEach(layer => map.removeLayer(layer));
 							button.classList.remove('active');
+							legend.classList.add('hidden');
 						}
 					},
 					clearVisibilityBands() {
 						const { visibilityBands, map } = App.state;
 						if (visibilityBands.layers.length > 0) {
-							visibilityBands.layers.forEach(layer => map.removeLayer(layer));
+							visibilityBands.layers.forEach(layer => {
+                                if (map.hasLayer(layer)) {
+                                    map.removeLayer(layer);
+                                }
+                            });
 						}
 						visibilityBands.layers = [];
 						visibilityBands.trajectory = [];
 						visibilityBands.visible = false;
 						App.elements.visibilityControls.classList.add('hidden');
+						App.elements.visibilityLegend.classList.add('hidden');
+						App.elements.toggleVisibilityBandsBtn.classList.add('hidden');
 						App.elements.toggleVisibilityBandsBtn.classList.remove('active');
 					}
 				},
@@ -1664,10 +1883,9 @@
                     },
 					updateMapForCurrentTime() {
 						App.satellites.updatePositions();
-                        // ===== INICIO DE LA MODIFICACIÓN: Se quita la condición 'if(!App.state.isTimeTraveling)' =====
-						// Esto asegura que la órbita se redibuje siempre, incluso durante la simulación de tiempo.
-						App.satellites.drawOrbits();
-                        // ===== FIN DE LA MODIFICACIÓN =====
+						if (!App.state.isPassViewActive) {
+							App.satellites.drawOrbits();
+						}
 						this.updateTimeUI(); 
                         this.updateClockPill();
 					},
@@ -1683,7 +1901,6 @@
 						if (!App.state.isTimeTraveling) {
 							App.state.isTimeTraveling = true; this.stopRealTimeUpdates();
 							App.elements.toggleTimeControlBtn.classList.add('time-traveling-active');
-							// Se deja esta limpieza inicial para que no se superpongan las órbitas viejas y las nuevas al empezar el viaje.
 							App.state.trackedSatellites.forEach(sat => {
 								if (sat.orbitLayers) sat.orbitLayers.forEach(layer => App.state.map.removeLayer(layer));
 								sat.orbitLayers = [];
@@ -1693,6 +1910,7 @@
 					stopTimeTravel() {
 						if(App.state.isTimeTraveling) { 
 							App.state.isTimeTraveling = false; 
+							App.state.isPassViewActive = false;
 							App.elements.toggleTimeControlBtn.classList.remove('time-traveling-active'); 
 							App.prediction.clearVisibilityBands();
 						}
@@ -1727,3 +1945,4 @@
 	</script>
 </body>
 </html>
+
