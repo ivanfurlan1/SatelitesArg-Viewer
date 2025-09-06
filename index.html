@@ -39,6 +39,12 @@
 			--color-orbit: var(--color-warning); /* Amarillo/Naranja para la órbita */
 		}
 
+		/* INICIO DE CORRECCIÓN: Layout adaptable */
+		html {
+			height: 100%;
+		}
+		/* FIN DE CORRECCIÓN */
+
 		body {
 			font-family: 'Inter', sans-serif;
 			background-color: var(--color-background);
@@ -46,12 +52,25 @@
 			overflow: hidden;
 			user-select: none;
 			cursor: default;
+			/* INICIO DE CORRECCIÓN: Convertir body a contenedor flex */
+			height: 100%;
+			margin: 0;
+			display: flex;
+			flex-direction: column;
+			/* FIN DE CORRECCIÓN */
 		}
 		
 		::selection {
 			background-color: var(--color-primary);
 			color: white;
 		}
+
+		/* INICIO DE CORRECCIÓN: Hacer que el contenedor de la app se expanda correctamente */
+		#app-container {
+			flex-grow: 1; /* Se estira para ocupar el espacio disponible */
+			min-height: 0; /* Previene problemas de desbordamiento en contenedores flex */
+		}
+		/* FIN DE CORRECCIÓN */
 
 		/* Helper para ocultar elementos */
 		.hidden {
@@ -231,9 +250,16 @@
 			display: none;
 		}
 		
+		/* ==================================================================
+		   INICIO DE LA MODIFICACIÓN: ZOOM FLUIDO Y SIN PARPADEOS
+		   ================================================================== */
 		.leaflet-zoom-anim .leaflet-zoom-animated {
+			/* Hacemos la animación de zoom casi instantánea (75ms) */
 			transition: transform 0.075s cubic-bezier(0,0,0.25,1);
 		}
+		/* ==================================================================
+		   FIN DE LA MODIFICACIÓN
+		   ================================================================== */
 
 		.satellite-dot-icon {
 			width: 12px;
@@ -272,6 +298,7 @@
 			box-shadow: 0 0 10px rgba(0,0,0,0.5);
 		}
 
+		/* INICIO MODIFICACIÓN: Estilo para que el nombre del satélite sea clickeable */
 		#satellite-name-display {
 			cursor: pointer;
 			transition: color 0.2s ease-in-out;
@@ -279,19 +306,22 @@
 		#satellite-name-display:hover {
 			color: var(--color-secondary);
 		}
+		/* FIN MODIFICACIÓN */
 
+		/* INICIO CORRECCIÓN: Animación suave para el botón de información */
 		#satellite-info-btn {
 			opacity: 0;
 			transform: scale(0.8);
-			transform-origin: left center;
+			transform-origin: left center; /* Para que la escala se origine desde el lado del texto */
 			transition: opacity 0.3s ease-in-out 0.1s, transform 0.3s ease-in-out 0.1s;
-			pointer-events: none;
+			pointer-events: none; /* Previene clicks cuando está oculto */
 		}
 		#main-control-panel.expanded #satellite-info-btn {
 			opacity: 1;
 			transform: scale(1);
 			pointer-events: auto;
 		}
+		/* FIN CORRECCIÓN */
 
 		.orbit-path {
 			stroke: var(--color-orbit);
@@ -365,13 +395,12 @@
             border: 1px solid #30363d;
         }
         
-        /* ==========================================================================
-           INICIO DE LA MODIFICACIÓN: UI INFERIOR RESPONSIVE
-           ========================================================================== */
-
-		/* El posicionamiento de la píldora de tiempo ahora es manejado por su contenedor flex.
-		   Se mantienen los estilos de apariencia y se ajusta el hover. */
 		#toggle-time-control-btn {
+            position: absolute;
+            z-index: 450;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
             height: auto;
             width: auto;
             padding: 0.5rem 1rem;
@@ -386,15 +415,13 @@
             align-items: center;
             font-size: 0.9rem;
             transition: all 0.2s ease;
-			cursor: pointer;
         }
         #toggle-time-control-btn:hover {
             border-color: var(--color-secondary);
             color: var(--color-secondary);
-            transform: scale(1.05); /* Se quita el translateX que ya no es necesario */
+            transform: translateX(-50%) scale(1.05);
         }
 
-		/* Se ajusta la posición del panel de control de tiempo para que no se superponga con la nueva barra inferior. */
 		#time-control-panel {
 			position: absolute;
 			z-index: 500;
@@ -402,7 +429,7 @@
 			backdrop-filter: blur(8px);
 			border: 1px solid #30363d;
 			box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-			bottom: 6.5rem; /* Aumentado para dejar espacio a la barra inferior */
+			bottom: 4.5rem;
 			left: 1rem;
 			right: 1rem;
 			max-width: 1000px;
@@ -456,10 +483,16 @@
             50% { opacity: 0.7; }
         }
 		
-		/* Se elimina el selector #map-style-switcher que posicionaba el contenedor.
-		   Ahora es un item de flexbox y su posición la define el layout de la barra inferior. */
-		
-		/* Se ajusta el menú de opciones de mapa para que aparezca hacia arriba. */
+		#map-style-switcher {
+			position: absolute;
+			z-index: 500;
+			bottom: 1.5rem;
+			left: 1rem;
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.5rem;
+		}
 		#map-style-options {
 			background: rgba(22, 27, 34, 0.8);
 			backdrop-filter: blur(8px);
@@ -471,21 +504,15 @@
 			gap: 0.25rem;
 			box-shadow: 0 4px 20px rgba(0,0,0,0.4);
 			opacity: 0;
-			transform-origin: bottom left;
-			transform: translateY(10px) scale(0.95);
+			transform: translateY(10px);
 			transition: opacity 0.2s ease, transform 0.2s ease;
 			pointer-events: none;
 		}
 		#map-style-switcher.is-open #map-style-options {
 			opacity: 1;
-			transform: translateY(0) scale(1);
+			transform: translateY(0);
 			pointer-events: auto;
 		}
-
-		/* ==========================================================================
-           FIN DE LA MODIFICACIÓN
-           ========================================================================== */
-		
 		.map-style-btn {
 			width: 100%;
 			text-align: left;
@@ -589,7 +616,9 @@
 	<!-- ==========================================================================
 	   CONTENEDOR PRINCIPAL DE LA APP (MAPA)
 	   ========================================================================== -->
-	<div id="app-container" class="w-full h-screen relative hidden">
+	<!-- INICIO DE CORRECCIÓN: Se elimina la clase 'h-screen' para que el contenedor se ajuste con flexbox -->
+	<div id="app-container" class="w-full relative hidden">
+	<!-- FIN DE CORRECCIÓN -->
 		<div id="map-container">
 			<div id="map"></div>
 		</div>
@@ -602,12 +631,15 @@
 					</button>
                     <h2 class="font-bold text-lg hidden sm:block">SatélitesArg</h2>
                 </div>
+                <!-- INICIO CORRECCIÓN: Estructura modificada para centrar el texto del satélite independientemente del botón de información -->
                 <div id="satellite-info-header" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center font-mono text-sm hidden">
 					<span id="satellite-name-display" class="font-bold text-white truncate max-w-[200px]" title="Centrar en el satélite"></span>
+					<!-- El botón ahora está posicionado de forma absoluta para no afectar el centrado del texto -->
 					<button id="satellite-info-btn" class="absolute left-full ml-2 text-secondary hover:text-primary transition-colors" title="Ver información del satélite">
 						<i class="fa-solid fa-circle-info text-lg"></i>
 					</button>
 				</div>
+                <!-- FIN CORRECCIÓN -->
                 <button id="toggle-menu-btn" class="btn btn-secondary !p-2 h-9 w-9 flex-shrink-0 flex items-center justify-center" aria-label="Expandir o colapsar menú" title="Expandir/Colapsar Menú">
 					<i class="fa-solid fa-chevron-down"></i>
 				</button>
@@ -636,7 +668,6 @@
             </div>
 		</header>
 		  
-        <!-- Panel de control de tiempo, posicionado independientemente pero con 'bottom' ajustado para no colisionar con la nueva barra -->
         <div id="time-control-panel">
             <div class="flex flex-col gap-4">
                 <div class="flex items-center justify-between mb-2">
@@ -667,49 +698,35 @@
             </div>
         </div>
         
-        <!-- ==========================================================================
-             NUEVA BARRA DE UI INFERIOR RESPONSIVE
-             ========================================================================== -->
-        <div class="absolute bottom-0 left-0 right-0 z-[400] w-full p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pointer-events-none" id="bottom-bar-container">
-            <div class="w-full max-w-6xl mx-auto flex justify-between items-end gap-4">
+        <button id="toggle-time-control-btn" title="Controles de tiempo" aria-label="Mostrar controles de tiempo" class="font-mono">
+             <span id="utc-time-display">UTC: --:--:--</span>
+        </button>
 
-                <!-- Lado Izquierdo: Switcher de Mapas -->
-                <div id="map-style-switcher" class="pointer-events-auto relative flex flex-col items-start">
-                    <div id="map-style-options" class="absolute bottom-full mb-2">
-                        <button class="map-style-btn active" data-layer="dark">Oscuro</button>
-                        <button class="map-style-btn" data-layer="light">Claro</button>
-                        <button class="map-style-btn" data-layer="satellite">Satélite</button>
-                    </div>
-                    <button id="map-style-toggle-btn" class="btn btn-secondary !p-0 h-11 w-11 flex items-center justify-center" title="Cambiar estilo del mapa">
-                        <i class="fa-solid fa-layer-group text-lg"></i>
-                    </button>
-                </div>
+		<div id="map-style-switcher">
+			<div id="map-style-options">
+				<button class="map-style-btn active" data-layer="dark">Oscuro</button>
+				<button class="map-style-btn" data-layer="light">Claro</button>
+				<button class="map-style-btn" data-layer="satellite">Satélite</button>
+			</div>
+			<button id="map-style-toggle-btn" class="btn btn-secondary !p-0 h-11 w-11 flex items-center justify-center" title="Cambiar estilo del mapa">
+				<i class="fa-solid fa-layer-group text-lg"></i>
+			</button>
+		</div>
 
-                <!-- Centro: Botón de Control de Tiempo (píldora) -->
-                <div class="pointer-events-auto">
-                    <button id="toggle-time-control-btn" title="Controles de tiempo" aria-label="Mostrar controles de tiempo" class="font-mono">
-                         <span id="utc-time-display">UTC: --:--:--</span>
-                    </button>
-                </div>
+		<div id="action-controls" class="absolute z-[500] bottom-6 right-4 flex gap-2">
+			<button id="toggle-visibility-bands-btn" class="btn btn-secondary !p-0 h-11 w-11 flex items-center justify-center hidden" title="Mostrar/Ocultar bandas de visibilidad">
+				<i class="fa-solid fa-eye text-lg"></i>
+			</button>
+		</div>
 
-                <!-- Lado Derecho: Controles de Acción (ojo) y Leyenda de Visibilidad -->
-                <div class="pointer-events-auto relative flex flex-col items-end">
-                    <div id="visibility-controls" class="absolute bottom-full right-0 mb-2 w-max hidden">
-                        <div id="visibility-legend" class="text-xs text-right bg-surface/80 p-2 rounded-md border border-gray-700 backdrop-blur-sm shadow-lg hidden">
-                            <div><i class="fa-solid fa-circle" style="color:rgba(57, 211, 83, 0.25)"></i> Óptima (> 60°)</div>
-                            <div><i class="fa-solid fa-circle" style="color:rgba(247, 181, 48, 0.2)"></i> Media (30°-60°)</div>
-                            <div><i class="fa-solid fa-circle" style="color:rgba(248, 81, 73, 0.15)"></i> Periférica (10°-30°)</div>
-                        </div>
-                    </div>
-                    <div id="action-controls" class="flex gap-2">
-                        <button id="toggle-visibility-bands-btn" class="btn btn-secondary !p-0 h-11 w-11 flex items-center justify-center hidden" title="Mostrar/Ocultar bandas de visibilidad">
-                            <i class="fa-solid fa-eye text-lg"></i>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+		<!-- Contenedor solo para la leyenda -->
+		<div id="visibility-controls" class="absolute z-[450] bottom-[5.5rem] right-4 flex-col items-end gap-2 hidden">
+			<div id="visibility-legend" class="text-xs text-right bg-surface/80 p-2 rounded-md border border-gray-700 backdrop-blur-sm shadow-lg hidden">
+				<div><i class="fa-solid fa-circle" style="color:rgba(57, 211, 83, 0.25)"></i> Óptima (> 60°)</div>
+				<div><i class="fa-solid fa-circle" style="color:rgba(247, 181, 48, 0.2)"></i> Media (30°-60°)</div>
+				<div><i class="fa-solid fa-circle" style="color:rgba(248, 81, 73, 0.15)"></i> Periférica (10°-30°)</div>
+			</div>
+		</div>
 
 	</div>
 
@@ -906,6 +923,11 @@
 
 				initMap() {
 					if (this.state.mapInitialized) return;
+					// ==================================================================
+					// INICIO DE LA MODIFICACIÓN: ZOOM FLUIDO Y SIN PARPADEOS
+					// ==================================================================
+					// La animación se activa para prevenir parpadeos, pero el CSS la
+					// hace casi instantánea para que el control sea súper responsivo.
 					this.state.map = L.map('map', { 
 						zoomControl: false, 
 						attributionControl: false,
@@ -913,8 +935,11 @@
                         minZoom: 2,
 						zoomSnap: 0.1,
 						zoomDelta: 0.25,
-						zoomAnimation: true
+						zoomAnimation: true // <-- Se mantiene en `true` para que el CSS funcione
 					}).setView([20, 0], 2);
+					// ==================================================================
+					// FIN DE LA MODIFICACIÓN
+					// ==================================================================
 
 					this.mapLayers.defineLayers();
 					this.mapLayers.switchLayer('dark');
@@ -1066,8 +1091,11 @@
 						
 						if (this.state.map) {
 							if (elements.timeControlPanel.classList.contains('visible')) {
+								// INICIO CORRECCIÓN: Movimiento invertido
+								// El menú se abre -> el mapa se mueve hacia ABAJO para hacer espacio.
 								this.state.map.panBy([0, 100], { animate: true });
 							} else {
+								// El menú se cierra -> el mapa vuelve a su lugar (hacia ARRIBA).
 								this.state.map.panBy([0, -100], { animate: true });
 							}
 						}
@@ -1780,6 +1808,9 @@
 								}
 							}
                             
+							// ==================================================================
+							// INICIO DE LA MODIFICACIÓN: DIBUJAR BANDAS CON BORDES REDONDEADOS
+							// ==================================================================
 							['periferica', 'media', 'optima'].forEach(band => {
 								const dist = distances[band];
 								const rightPoints = boundaries[band].right;
@@ -1789,16 +1820,23 @@
 								
 								const path = [];
 								
+								// 1. Añadir los puntos del borde derecho
 								path.push(...rightPoints);
 
+								// 2. Añadir el arco del final de la trayectoria
 								const endPoint = trajectory[trajectory.length - 1];
 								const endBearing = calculateBearing(trajectory[trajectory.length - 2], trajectory[trajectory.length - 1]);
+								// ==================================================================
+								// LÍNEA CORREGIDA
+								// ==================================================================
 								for (let angle = endBearing + 90; angle >= endBearing - 90; angle -= 10) {
 									path.push(calculateDestinationPoint(endPoint[0], endPoint[1], angle, dist));
 								}
 								
+								// 3. Añadir los puntos del borde izquierdo (en orden inverso)
 								path.push(...leftPoints.reverse());
 								
+								// 4. Añadir el arco del inicio de la trayectoria para cerrar el polígono
 								const startPoint = trajectory[0];
 								const startBearing = calculateBearing(trajectory[0], trajectory[1]);
 								for (let angle = startBearing - 90; angle >= startBearing - 270; angle -= 10) {
@@ -1812,6 +1850,9 @@
 								});
 								App.state.visibilityBands.layers.push(polygon);
 							});
+							// ==================================================================
+							// FIN DE LA MODIFICACIÓN
+							// ==================================================================
 						});
 					},
 					toggleVisibilityBands() {
